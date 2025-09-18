@@ -24,6 +24,14 @@ export async function POST(req: Request) {
     Only respond to questions using information from tool calls.
     if no relevant information is found in the tool calls, respond, "Sorry, I don't know."
     But follow the conversation, so use information from both the tool calls and the conversation.`,
+    experimental_telemetry: {
+      isEnabled: true,
+      functionId: 'rag-chat',
+      metadata: {
+        app: 'rag-chatbot-demo',
+        feature: 'chat',
+      },
+    },
     tools: {
       addResource: tool({
         description: `add a resource to your knowledge base.
