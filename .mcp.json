@@ -1,0 +1,23 @@
+{
+    "mcpServers": {
+        "context7": {
+          "type": "sse",
+          "url": "https://mcp.context7.com/sse"
+        },
+        "playwright": {
+          "command": "npx",
+          "args": [
+            "-y",
+            "@executeautomation/playwright-mcp-server"
+          ]
+        },
+        "claude": {
+          "command": "claude",
+          "args": [
+            "mcp",
+            "serve"
+          ],
+          "env": {}
+        }
+      }
+}
