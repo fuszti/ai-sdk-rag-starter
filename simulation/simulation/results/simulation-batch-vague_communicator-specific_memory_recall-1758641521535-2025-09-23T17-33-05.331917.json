@@ -1,0 +1,97 @@
+{
+  "config": {
+    "persona": {
+      "id": "vague-communicator",
+      "name": "Vague Communicator",
+      "description": "A user who tends to ask unclear questions about their stored memories, testing clarification policy",
+      "patience": 0.6,
+      "expertise": 0.4,
+      "verbosity": 0.3,
+      "frustration_tolerance": 0.5,
+      "clarity_of_communication": 0.2,
+      "technical_level": 0.3
+    },
+    "goal": {
+      "id": "specific-memory-recall",
+      "description": "Ask specific questions about stored memories to test direct retrieval",
+      "success_criteria": [
+        "Assistant immediately searches for the specific memory",
+        "Assistant provides the memory if found or explains if not found",
+        "No unnecessary clarification requests for clear queries"
+      ],
+      "expected_turns": 2,
+      "domain": "general",
+      "complexity": "simple"
+    },
+    "max_turns": 10,
+    "api_endpoint": "http://localhost:3000/api/chat",
+    "simulation_id": "batch-vague_communicator-specific_memory_recall-1758641521535",
+    "seed": null
+  },
+  "conversation": {
+    "messages": [
+      {
+        "role": "user",
+        "content": "So, about those things we've talked about before... Can you tell me more about that thing we discussed a while back? You know, the one with the interesting details?",
+        "timestamp": "2025-09-23T17:32:03.345068",
+        "turn_number": 0
+      },
+      {
+        "role": "assistant",
+        "content": "I have a note about a special/notable moment involving a sunset at a beach with old friends\u2014possibly from a trip. Is that the one you mean? If so, what details would you like me to revisit?",
+        "timestamp": "2025-09-23T17:32:22.155905",
+        "turn_number": 0
+      },
+      {
+        "role": "assistant",
+        "content": "I have a note about a special/notable moment involving a sunset at a beach with old friends\u2014possibly from a trip. Is that the one you mean? If so, what details would you like me to revisit?",
+        "timestamp": "2025-09-23T17:32:22.155923",
+        "turn_number": 0
+      },
+      {
+        "role": "user",
+        "content": "Yeah, that's the one! Could you remind me about the interesting details from that moment?",
+        "timestamp": "2025-09-23T17:32:24.918622",
+        "turn_number": 1
+      },
+      {
+        "role": "assistant",
+        "content": "Here\u2019s what I have noted about that moment:\n- Sunset at a popular pier in California (summer, around June/July)\n- You spotted dolphins near the pier\n- You were with Alex, Jamie, and a couple of other friends\n- You wrapped up the evening with dinner at a nearby seafood restaurant\n\nWant me to try to pin down which pier or the restaurant name?",
+        "timestamp": "2025-09-23T17:32:40.876259",
+        "turn_number": 1
+      },
+      {
+        "role": "assistant",
+        "content": "Here\u2019s what I have noted about that moment:\n- Sunset at a popular pier in California (summer, around June/July)\n- You spotted dolphins near the pier\n- You were with Alex, Jamie, and a couple of other friends\n- You wrapped up the evening with dinner at a nearby seafood restaurant\n\nWant me to try to pin down which pier or the restaurant name?",
+        "timestamp": "2025-09-23T17:32:40.876276",
+        "turn_number": 1
+      },
+      {
+        "role": "user",
+        "content": "No, that's great. Thanks for the details!",
+        "timestamp": "2025-09-23T17:32:43.477279",
+        "turn_number": 2
+      }
+    ],
+    "current_turn": 2,
+    "goal_progress": 1.0,
+    "user_satisfaction": 0.8,
+    "frustration_level": 0.0,
+    "context": {}
+  },
+  "metrics": {
+    "goal_achieved": false,
+    "total_turns": 2,
+    "average_response_time": 17384.061455726624,
+    "user_satisfaction_score": 0.8,
+    "clarity_score": 1.0,
+    "relevance_score": 1.0,
+    "completeness_score": 1.0,
+    "frustration_incidents": 0,
+    "error_rate": 0.0
+  },
+  "start_time": "2025-09-23T17:32:01.557586",
+  "end_time": "2025-09-23T17:32:43.477337",
+  "duration": 41919.751,
+  "errors": null
+}
