@@ -43,15 +43,15 @@ export default function Chat() {
                       {toolParts.map((part, index) => (
                         <div key={index} className="text-sm">
                           <p className="font-medium">
-                            {part.state === 'output-available' ? 'Called' : 'Calling'}{' '}
+                            {(part as any).state === 'output-available' ? 'Called' : 'Calling'}{' '}
                             {part.type.replace('tool-', '')}
                           </p>
                           <pre className="my-1 bg-zinc-100 p-2 rounded-sm text-xs overflow-x-auto">
-                            Input: {JSON.stringify(part.input, null, 2)}
+                            Input: {JSON.stringify((part as any).input, null, 2)}
                           </pre>
-                          {part.state === 'output-available' && part.output ? (
+                          {(part as any).state === 'output-available' && (part as any).output ? (
                             <pre className="my-1 bg-green-100 p-2 rounded-sm text-xs overflow-x-auto">
-                              Output: {typeof part.output === 'string' ? part.output : JSON.stringify(part.output, null, 2)}
+                              Output: {typeof (part as any).output === 'string' ? (part as any).output : JSON.stringify((part as any).output, null, 2)}
                             </pre>
                           ) : null}
                         </div>

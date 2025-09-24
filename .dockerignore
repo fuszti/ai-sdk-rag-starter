@@ -1,0 +1,12 @@
+node_modules
+.next
+.git
+.env.local
+.env
+simulation/results
+simulation/__pycache__
+.venv
+*.pyc
+README.md
+docker-compose.yml
+docker-compose.eval.yml

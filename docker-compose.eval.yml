@@ -1,0 +1,35 @@
+version: '3.8'
+services:
+  postgres-eval:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: rag_eval_${EVAL_RUN_ID:-default}
+    ports:
+      - "${EVAL_DB_PORT:-5433}:5432"
+    volumes:
+      - eval_postgres_data:/var/lib/postgresql/data
+      - ./simulation/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app-eval:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${EVAL_APP_PORT:-3001}:3000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres-eval:5432/rag_eval_${EVAL_RUN_ID:-default}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - NODE_ENV=production
+    depends_on:
+      postgres-eval:
+        condition: service_healthy
+
+volumes:
+  eval_postgres_data:
