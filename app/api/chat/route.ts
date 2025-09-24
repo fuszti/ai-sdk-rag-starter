@@ -2,6 +2,7 @@ import { createResource } from '@/lib/actions/resources';
 import { openai } from '@ai-sdk/openai';
 import {
   convertToModelMessages,
+  generateText,
   streamText,
   tool,
   UIMessage,
@@ -9,14 +10,19 @@ import {
 } from 'ai';
 import { z } from 'zod';
 import { findRelevantContent } from '@/lib/ai/embedding';
+import { NextResponse } from 'next/server';
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
   const { messages }: { messages: UIMessage[] } = await req.json();
-
-  const result = streamText({
+  const accept = req.headers.get('accept') ?? '';
+  const wantsJson = accept.includes('application/json') &&
+    !accept.includes('text/event-stream') &&
+    !accept.includes('application/x-ndjson');
+  
+  const common = {
     model: openai('gpt-5'),
     messages: convertToModelMessages(messages),
     stopWhen: stepCountIs(5),
@@ -43,7 +49,16 @@ export async function POST(req: Request) {
         execute: async ({ question }) => findRelevantContent(question),
       }),
     },
-  });
+  } as const;
 
+  if (wantsJson) {
+    const { text } = await generateText(common);
+    return NextResponse.json(
+      { answer: text },
+      { status: 200, headers: { 'Cache-Control': 'no-store' } },
+    );
+  }
+
+  const result = streamText(common);
   return result.toUIMessageStreamResponse();
 }
