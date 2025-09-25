@@ -1,0 +1,37 @@
+# Test cases for RAG Assistant evaluation
+# Simple, focused tests for CI demo
+
+- description: "Test 1: Add information to knowledge base"
+  vars:
+    prompt: "The capital of France is Paris. It's known as the City of Light."
+  assert:
+    - type: javascript
+      value: "output && output.length > 0"
+
+- description: "Test 2: Query for unknown information"
+  vars:
+    prompt: "What is the population of Mars colony Alpha in year 2157?"
+  assert:
+    - type: icontains-any
+      value:
+        - "Sorry"
+        - "don't know"
+        - "no information"
+
+- description: "Test 3: Store technical fact"
+  vars:
+    prompt: "Python is a high-level programming language created by Guido van Rossum."
+  assert:
+    - type: javascript
+      value: "output && output.length > 0"
+    - type: not-icontains
+      value: "error"
+
+- description: "Test 4: Response exists for general query"
+  vars:
+    prompt: "What is artificial intelligence?"
+  assert:
+    - type: javascript
+      value: "output && typeof output === 'string'"
+    - type: javascript
+      value: "output.length > 10"
