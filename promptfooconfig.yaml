@@ -4,7 +4,7 @@ description: "RAG Assistant CI Evaluation"
 providers:
   - id: http
     config:
-      url: "http://localhost:3001/api/chat"
+      url: "http://localhost:3000/api/chat"
       method: POST
       headers:
         Accept: "application/json"

@@ -23,11 +23,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
+          cache: 'pnpm'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: latest
 
       - name: Install dependencies
         run: |
-          npm ci
+          pnpm install --frozen-lockfile
           npx promptfoo@latest --version
 
       - name: Setup PostgreSQL database
@@ -48,15 +53,15 @@ jobs:
       - name: Run database migrations
         run: |
           # Run database migrations/setup
-          npm run db:migrate || npm run db:push || true
+          pnpm run db:migrate || pnpm run db:push || true
 
       - name: Start application server
         run: |
           # Build the application
-          npm run build
+          pnpm run build
 
           # Start the server in background
-          npm start &
+          pnpm start &
 
           # Wait for server to be ready
           echo "Waiting for server to start..."
