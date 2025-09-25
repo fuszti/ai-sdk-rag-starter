@@ -174,5 +174,6 @@ jobs:
         if: always()
         run: |
           # Create a simple status file for badge generation
-          echo "${{ steps.eval.outputs.status }}" > results/status.txt
-          echo "Pass Rate: ${{ steps.eval.outputs.pass_rate }}" >> results/status.txt
+          mkdir -p results
+          echo "${{ steps.run-promptfoo.outputs.status }}" > results/status.txt
+          echo "Pass Rate: ${{ steps.run-promptfoo.outputs.pass_rate }}" >> results/status.txt
