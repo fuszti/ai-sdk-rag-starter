@@ -1,12 +1,30 @@
 'use client';
 
 import { useChat } from '@ai-sdk/react';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { nanoid } from 'nanoid';
+import { DefaultChatTransport } from 'ai';
 
 export default function Chat() {
   const [input, setInput] = useState('');
   const [expandedTools, setExpandedTools] = useState<Record<string, boolean>>({});
-  const { messages, sendMessage } = useChat();
+
+  // Generate a session ID that persists for the entire chat session
+  const sessionId = useMemo(() => nanoid(), []);
+
+  const { messages, sendMessage } = useChat({
+    id: sessionId,
+    transport: new DefaultChatTransport({
+      api: '/api/chat',
+      prepareSendMessagesRequest: ({ messages }) => ({
+        body: { id: sessionId, messages },
+      }),
+    }),
+    onError: (error) => {
+      console.error('Chat error:', error);
+    },
+  });
+
 
   const toggleToolDetails = (messageId: string, partIndex: number) => {
     const key = `${messageId}-${partIndex}`;
@@ -40,7 +58,7 @@ export default function Chat() {
                       ▶ Show how I found this ({toolParts.length} tool call{toolParts.length !== 1 ? 's' : ''})
                     </summary>
                     <div className="mt-2 pl-4 border-l-2 border-gray-200 space-y-2">
-                      {toolParts.map((part, index) => (
+                      {toolParts.map((part: any, index) => (
                         <div key={index} className="text-sm">
                           <p className="font-medium">
                             {part.state === 'output-available' ? 'Called' : 'Calling'}{' '}

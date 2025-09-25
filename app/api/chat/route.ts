@@ -1,5 +1,5 @@
 import { createResource } from '@/lib/actions/resources';
-import { openai } from '@ai-sdk/openai';
+import { openai } from '@/lib/ai/client';
 import {
   convertToModelMessages,
   generateText,
@@ -11,21 +11,37 @@ import {
 import { z } from 'zod';
 import { findRelevantContent } from '@/lib/ai/embedding';
 import { NextResponse } from 'next/server';
+import { nanoid } from 'nanoid';
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
-  const { messages }: { messages: UIMessage[] } = await req.json();
+  const body = await req.json();
+  const { messages, id: chatId } = body ?? {};
+
+
   const accept = req.headers.get('accept') ?? '';
   const wantsJson = accept.includes('application/json') &&
     !accept.includes('text/event-stream') &&
     !accept.includes('application/x-ndjson');
+
+  // Use provided chat id/body or header for Helicone tracking, fallback to generating one
+  const currentSessionId = chatId || nanoid();
+  console.log('currentSessionId', currentSessionId);
+
+  // Helicone session tracking headers
+  const heliconeHeaders = {
+    'Helicone-Session-Id': currentSessionId,
+    'Helicone-Session-Name': 'AI RAG Chat',
+    'Helicone-Session-Path': '/chat',
+  };
   
   const common = {
     model: openai('gpt-5'),
     messages: convertToModelMessages(messages),
     stopWhen: stepCountIs(5),
+    headers: heliconeHeaders,
     system: `You are a helpful assistant. Check your knowledge base before answering any questions.
     Only respond to questions using information from tool calls.
     if no relevant information is found in the tool calls, respond, "Sorry, I don't know."
