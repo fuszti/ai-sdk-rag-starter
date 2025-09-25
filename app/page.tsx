@@ -40,7 +40,7 @@ export default function Chat() {
                       ▶ Show how I found this ({toolParts.length} tool call{toolParts.length !== 1 ? 's' : ''})
                     </summary>
                     <div className="mt-2 pl-4 border-l-2 border-gray-200 space-y-2">
-                      {toolParts.map((part, index) => (
+                      {toolParts.map((part: any, index) => (
                         <div key={index} className="text-sm">
                           <p className="font-medium">
                             {part.state === 'output-available' ? 'Called' : 'Calling'}{' '}

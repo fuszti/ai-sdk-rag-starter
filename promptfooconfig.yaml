@@ -1,0 +1,31 @@
+# Promptfoo configuration for RAG Assistant evaluation
+description: "RAG Assistant CI Evaluation"
+
+providers:
+  - id: http
+    config:
+      url: "http://localhost:3001/api/chat"
+      method: POST
+      headers:
+        Accept: "application/json"
+        Content-Type: "application/json"
+      body:
+        messages:
+          - role: "user"
+            content: "{{prompt}}"
+      responseParser: "json.answer"
+
+prompts:
+  - "{{prompt}}"  # Use the prompt directly from test cases
+
+tests:
+  - file://prompts/test_cases.yaml
+
+outputPath: ./results/output.json
+
+defaultTest:
+  options:
+    maxConcurrency: 2
+
+# Assertions thresholds
+threshold: 0.8  # 80% of tests must pass

@@ -16,15 +16,28 @@ import { NextResponse } from 'next/server';
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
-  const { messages }: { messages: UIMessage[] } = await req.json();
-  const accept = req.headers.get('accept') ?? '';
-  const wantsJson = accept.includes('application/json') &&
-    !accept.includes('text/event-stream') &&
-    !accept.includes('application/x-ndjson');
-  
-  const common = {
-    model: openai('gpt-5'),
-    messages: convertToModelMessages(messages),
+  try {
+    const body = await req.json();
+    const messages: UIMessage[] = body?.messages || [];
+
+    if (!Array.isArray(messages) || messages.length === 0) {
+      return NextResponse.json(
+        { error: "Messages array is required" },
+        { status: 400 }
+      );
+    }
+
+    const accept = req.headers.get('accept') ?? '';
+    const wantsJson = accept.includes('application/json') &&
+      !accept.includes('text/event-stream') &&
+      !accept.includes('application/x-ndjson');
+
+    const common = {
+      model: openai('gpt-4'),
+      messages: messages.map((msg: any) => ({
+        role: msg.role,
+        content: msg.content || '',
+      })),
     stopWhen: stepCountIs(5),
     system: `You are a helpful assistant. Check your knowledge base before answering any questions.
     Only respond to questions using information from tool calls.
@@ -61,4 +74,12 @@ export async function POST(req: Request) {
 
   const result = streamText(common);
   return result.toUIMessageStreamResponse();
+
+  } catch (error) {
+    console.error('API Error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
 }
