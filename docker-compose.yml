@@ -11,5 +11,20 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  phoenix:
+    image: arizephoenix/phoenix:latest
+    depends_on:
+      - postgres
+    ports:
+      - "6006:6006"  # Phoenix web UI
+      - "4317:4317"  # OpenTelemetry gRPC port
+      - "9090:9090"  # Prometheus metrics (optional)
+    environment:
+      - PHOENIX_SQL_DATABASE_URL=postgresql://postgres:postgres@postgres:5432/rag_starter
+      - PHOENIX_WORKING_DIR=/mnt/data
+    volumes:
+      - phoenix_data:/mnt/data
+
 volumes:
   postgres_data:
+  phoenix_data:
