@@ -58,8 +58,8 @@ const provider = new NodeTracerProvider({
 provider.addSpanProcessor(new BatchSpanProcessor(exporter));
 provider.register();
 
-console.log('🎯 Clean OpenTelemetry initialized - MANUAL SPANS ONLY');
-console.log('📍 Sending traces to:', process.env.OTEL_EXPORTER_OTLP_TRACES_ENDPOINT || 'http://localhost:6006/v1/traces');
+console.log('Clean OpenTelemetry initialized - MANUAL SPANS ONLY');
+console.log('Sending traces to:', process.env.OTEL_EXPORTER_OTLP_TRACES_ENDPOINT || 'http://localhost:6006/v1/traces');
 
 process.on('SIGTERM', () => {
   provider.shutdown().finally(() => process.exit(0));

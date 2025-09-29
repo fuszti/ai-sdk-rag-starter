@@ -156,13 +156,7 @@ export function setRetrieverOutput(span: Span, documents: Array<{id?: string; co
     score: doc.score || 0,
   }));
 
-  // Prefer an array of strings for better Phoenix rendering
-  span.setAttribute(
-    RETRIEVAL_DOCUMENTS,
-    formattedDocs.map((d) => d.content)
-  );
-  // Keep full JSON as a separate attribute for debugging
-  span.setAttribute('retrieval.documents_json', JSON.stringify(formattedDocs));
+  span.setAttribute(RETRIEVAL_DOCUMENTS, JSON.stringify(formattedDocs));
   // Also add flattened, indexed attributes for Phoenix table rendering
   formattedDocs.forEach((doc, idx) => {
     span.setAttribute(`retrieval.documents.${idx}.document_id`, doc.document_id);
