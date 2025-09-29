@@ -44,7 +44,7 @@ export async function createLLMSpan<T>(
         [INPUT_MIME_TYPE]: 'text/plain',
       },
     },
-    async (span) => {
+    async (span: Span) => {
       try {
         const result = await fn(span);
         span.setStatus({ code: SpanStatusCode.OK });
@@ -81,7 +81,7 @@ export async function createEmbeddingSpan<T>(
         [INPUT_MIME_TYPE]: 'text/plain',
       },
     },
-    async (span) => {
+    async (span: Span) => {
       try {
         const result = await fn(span);
         span.setStatus({ code: SpanStatusCode.OK });
@@ -114,7 +114,7 @@ export async function createRetrieverSpan<T>(
         [INPUT_MIME_TYPE]: 'text/plain',
       },
     },
-    async (span) => {
+    async (span: Span) => {
       try {
         const result = await fn(span);
         span.setStatus({ code: SpanStatusCode.OK });
@@ -141,28 +141,55 @@ export function setLLMOutput(span: Span, output: string, tokens?: { prompt?: num
   }
 }
 
-export function setEmbeddingOutput(span: Span, vector: number[], dimensions: number) {
-  // Standard OpenInference fields
-  span.setAttribute(EMBEDDING_VECTOR, JSON.stringify(vector));
-  // Also provide the nested Phoenix-friendly structure
-  span.setAttribute(`${EMBEDDING_EMBEDDINGS}.0.embedding.vector`, JSON.stringify(vector));
-  span.setAttribute('embedding.dimensions', dimensions);
+export function setEmbeddingOutputs(
+  span: Span,
+  items: Array<{ text?: string; vector: number[] }>
+) {
+  // Emit only indexed nested attributes; set vectors as strings to match known-working format
+  items.forEach((item, i) => {
+    const vec = Array.isArray(item.vector) ? item.vector : Array.from(item.vector as any);
+    if (typeof item.text === 'string') {
+      span.setAttribute(`${EMBEDDING_EMBEDDINGS}.${i}.embedding.text`, item.text);
+    }
+    span.setAttribute(`${EMBEDDING_EMBEDDINGS}.${i}.embedding.vector`, JSON.stringify(vec));
+    span.setAttribute(`${EMBEDDING_EMBEDDINGS}.${i}.embedding.dimensions`, vec.length);
+  });
+  // Top-level first vector string for compatibility
+  if (items[0]) {
+    const first = Array.isArray(items[0].vector) ? items[0].vector : Array.from(items[0].vector as any);
+    span.setAttribute(EMBEDDING_VECTOR, JSON.stringify(first));
+  }
 }
 
-export function setRetrieverOutput(span: Span, documents: Array<{id?: string; content: string; score?: number}>) {
+export function setEmbeddingOutput(span: Span, vector: number[], text?: string) {
+  setEmbeddingOutputs(span, [{ text, vector }]);
+}
+
+export function setRetrieverOutput(
+  span: Span,
+  documents: Array<{ id?: string; content: string; score?: number; metadata?: Record<string, any> }>
+) {
   const formattedDocs = documents.map((doc, idx) => ({
-    document_id: doc.id || idx.toString(),
-    content: doc.content.substring(0, 200),
-    score: doc.score || 0,
+    document: {
+      id: doc.id || idx.toString(),
+      score: doc.score || 0,
+      content: (doc.content || '').substring(0, 200),
+      ...(doc.metadata ? { metadata: doc.metadata } : {}),
+    },
   }));
 
-  span.setAttribute(RETRIEVAL_DOCUMENTS, JSON.stringify(formattedDocs));
-  // Also add flattened, indexed attributes for Phoenix table rendering
+  // Do NOT set an aggregated JSON on RETRIEVAL_DOCUMENTS to avoid viewer type conflicts
+
+  // Also add flattened attributes per Arize examples for easy table rendering
   formattedDocs.forEach((doc, idx) => {
-    span.setAttribute(`retrieval.documents.${idx}.document_id`, doc.document_id);
-    span.setAttribute(`retrieval.documents.${idx}.content`, doc.content);
-    span.setAttribute(`retrieval.documents.${idx}.score`, doc.score);
+    span.setAttribute(`retrieval.documents.${idx}.document.id`, doc.document.id);
+    span.setAttribute(`retrieval.documents.${idx}.document.score`, doc.document.score);
+    span.setAttribute(`retrieval.documents.${idx}.document.content`, doc.document.content);
+    if ((doc.document as any).metadata !== undefined) {
+      span.setAttribute(`retrieval.documents.${idx}.document.metadata`, JSON.stringify((doc.document as any).metadata));
+    }
   });
+
   span.setAttribute(OUTPUT_VALUE, `Retrieved ${documents.length} documents`);
   span.setAttribute(OUTPUT_MIME_TYPE, 'text/plain');
   span.setAttribute('retrieval.document_count', documents.length);

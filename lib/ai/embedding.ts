@@ -1,6 +1,6 @@
 import { openai } from '@ai-sdk/openai';
 import { embed, embedMany } from 'ai';
-import { cosineDistance, desc, gt, sql } from 'drizzle-orm';
+import { drizzleSql as sql } from '@/lib/db/schema/resources';
 
 import { db } from '@/lib/db';
 import { embeddings } from '@/lib/db/schema/resources';
@@ -8,6 +8,7 @@ import {
   createEmbeddingSpan,
   createRetrieverSpan,
   setEmbeddingOutput,
+  setEmbeddingOutputs,
   setRetrieverOutput,
 } from '@/lib/tracing-clean';
 
@@ -41,9 +42,12 @@ export const generateEmbeddings = async (
 
       const results = embedRes.map((e, i) => ({ content: chunks[i], embedding: e }));
 
-      // Set embedding output for first embedding as example
-      if (embedRes[0]) {
-        setEmbeddingOutput(span, embedRes[0], embedRes[0].length);
+      // Record all embeddings with their source text per OpenInference conventions
+      if (embedRes.length) {
+        setEmbeddingOutputs(
+          span,
+          embedRes.map((e, i) => ({ text: chunks[i], vector: e }))
+        );
       }
 
       return results;
@@ -64,7 +68,7 @@ export const generateEmbedding = async (value: string): Promise<number[]> => {
         value: input,
       });
 
-      setEmbeddingOutput(span, embedding, embedding.length);
+      setEmbeddingOutput(span, embedding, input);
       return embedding;
     }
   );
@@ -77,16 +81,15 @@ export const findRelevantContent = async (userQuery: string) => {
     async (span) => {
       const userQueryEmbedded = await generateEmbedding(userQuery);
 
-      const similarity = sql<number>`1 - (${cosineDistance(
-        embeddings.embedding,
-        userQueryEmbedded,
-      )})`;
+      // Use cosine distance via pgvector; cast RHS to vector to avoid "vector <=> record" errors
+      const queryVec = sql.raw(`ARRAY[${userQueryEmbedded.join(',')}]::vector`);
+      const distExpr = sql<number>`(${embeddings.embedding} <=> ${queryVec})`;
 
       const similarGuides = await db
-        .select({ content: embeddings.content, similarity })
+        .select({ content: embeddings.content, distance: distExpr })
         .from(embeddings)
-        .where(gt(similarity, 0.3))
-        .orderBy((t) => desc(t.similarity))
+        .where(sql`${distExpr} < 0.7`)
+        .orderBy(distExpr)
         .limit(4);
 
       if (!Array.isArray(similarGuides)) {
@@ -105,7 +108,7 @@ export const findRelevantContent = async (userQuery: string) => {
       setRetrieverOutput(span, similarGuides.map((guide, idx) => ({
         id: idx.toString(),
         content: guide.content || '',
-        score: guide.similarity || 0,
+        score: typeof (guide as any).distance === 'number' ? 1 - (guide as any).distance : 0,
       })));
 
       return similarGuides.map(guide => guide.content || '').join('\n');

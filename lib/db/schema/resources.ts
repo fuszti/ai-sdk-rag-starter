@@ -39,3 +39,6 @@ export const insertResourceSchema = createSelectSchema(resources)
 
 // Type for resources - used to type API request params and within Components
 export type NewResourceParams = z.infer<typeof insertResourceSchema>;
+
+// Re-export a local alias of drizzle's sql helper to avoid tooling issues in some files
+export { sql as drizzleSql } from "drizzle-orm";
